@@ -5,6 +5,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +23,12 @@ public final class RealmGPTClient implements ClientModInitializer {
         reloadConfig();
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildContext) -> dispatcher.register(
             literal("gpt")
-                .then(literal("status").executes(ctx -> { ctx.getSource().sendFeedback("RealmGPT | API: " + (config.hasKey() ? "configured" : "MISSING") + " | Model: " + config.model + " | Pending: " + pending.size() + " | Status: " + (busy ? "Generating" : "Ready")); return 1; }))
-                .then(literal("reload").executes(ctx -> { reloadConfig(); ctx.getSource().sendFeedback("RealmGPT configuration reloaded. API: " + (config.hasKey() ? "configured" : "MISSING")); return 1; }))
+                .then(literal("status").executes(ctx -> { ctx.getSource().sendFeedback(Component.literal("RealmGPT | API: " + (config.hasKey() ? "configured" : "MISSING") + " | Model: " + config.model + " | Pending: " + pending.size() + " | Status: " + (busy ? "Generating" : "Ready"))); return 1; }))
+                .then(literal("reload").executes(ctx -> { reloadConfig(); ctx.getSource().sendFeedback(Component.literal("RealmGPT configuration reloaded. API: " + (config.hasKey() ? "configured" : "MISSING"))); return 1; }))
                 .then(literal("approve").executes(ctx -> { executePending(); return 1; }))
                 .then(literal("deny").executes(ctx -> { pending.clear(); feedback("Pending commands discarded."); return 1; }))
                 .then(literal("stop").executes(ctx -> { pending.clear(); busy = false; feedback("Pending work cleared."); return 1; }))
-                .then(literal("queue").then(argument("command", StringArgumentType.greedyString()).executes(ctx -> { pending.clear(); pending.add(clean(StringArgumentType.getString(ctx,"command"))); ctx.getSource().sendFeedback("RealmGPT queued 1 command. Use /gpt approve."); return 1; })))
+                .then(literal("queue").then(argument("command", StringArgumentType.greedyString()).executes(ctx -> { pending.clear(); pending.add(clean(StringArgumentType.getString(ctx,"command"))); ctx.getSource().sendFeedback(Component.literal("RealmGPT queued 1 command. Use /gpt approve.")); return 1; })))
                 .then(literal("ask").then(argument("request", StringArgumentType.greedyString()).executes(ctx -> { generate(StringArgumentType.getString(ctx,"request")); return 1; })))
                 .then(literal("chain").then(argument("description", StringArgumentType.greedyString()).executes(ctx -> { generate("Create a command-block chain for: " + StringArgumentType.getString(ctx,"description")); return 1; })))
         ));
