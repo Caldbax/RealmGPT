@@ -22,12 +22,12 @@ public final class RealmGPTClient implements ClientModInitializer {
         reloadConfig();
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildContext) -> dispatcher.register(
             literal("gpt")
-                .then(literal("status").executes(ctx -> { feedback("Loaded | API key: " + (config.hasKey() ? "configured" : "MISSING") + " | pending: " + pending.size() + " | busy: " + busy); return 1; }))
-                .then(literal("reload").executes(ctx -> { reloadConfig(); feedback("Configuration reloaded. API key: " + (config.hasKey() ? "configured" : "MISSING")); return 1; }))
+                .then(literal("status").executes(ctx -> { ctx.getSource().sendFeedback("RealmGPT | API: " + (config.hasKey() ? "configured" : "MISSING") + " | Model: " + config.model + " | Pending: " + pending.size() + " | Status: " + (busy ? "Generating" : "Ready")); return 1; }))
+                .then(literal("reload").executes(ctx -> { reloadConfig(); ctx.getSource().sendFeedback("RealmGPT configuration reloaded. API: " + (config.hasKey() ? "configured" : "MISSING")); return 1; }))
                 .then(literal("approve").executes(ctx -> { executePending(); return 1; }))
                 .then(literal("deny").executes(ctx -> { pending.clear(); feedback("Pending commands discarded."); return 1; }))
                 .then(literal("stop").executes(ctx -> { pending.clear(); busy = false; feedback("Pending work cleared."); return 1; }))
-                .then(literal("queue").then(argument("command", StringArgumentType.greedyString()).executes(ctx -> { pending.clear(); pending.add(clean(StringArgumentType.getString(ctx,"command"))); feedback("Queued 1 command. Use /gpt approve."); return 1; })))
+                .then(literal("queue").then(argument("command", StringArgumentType.greedyString()).executes(ctx -> { pending.clear(); pending.add(clean(StringArgumentType.getString(ctx,"command"))); ctx.getSource().sendFeedback("RealmGPT queued 1 command. Use /gpt approve."); return 1; })))
                 .then(literal("ask").then(argument("request", StringArgumentType.greedyString()).executes(ctx -> { generate(StringArgumentType.getString(ctx,"request")); return 1; })))
                 .then(literal("chain").then(argument("description", StringArgumentType.greedyString()).executes(ctx -> { generate("Create a command-block chain for: " + StringArgumentType.getString(ctx,"description")); return 1; })))
         ));
@@ -89,6 +89,10 @@ public final class RealmGPTClient implements ClientModInitializer {
     }
 
     private static void feedback(String message) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.getConnection() != null) mc.getConnection().sendCommand("tellraw @s {\"text\":\"[RealmGPT] " + escape(message) + "\",\"color\":\"light_purple\"}");
         System.out.println("[RealmGPT] " + message);
     }
+
+    private static String escape(String s) { return s.replace("\\", "\\\\").replace("\"", "\\\""); }
 }
