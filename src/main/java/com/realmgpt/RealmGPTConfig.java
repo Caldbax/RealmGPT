@@ -10,7 +10,7 @@ final class RealmGPTConfig {
     final String model;
     final boolean requireApproval;
 
-    private RealmGPTConfig(String apiKey, String model, boolean requireApproval) {
+    RealmGPTConfig(String apiKey, String model, boolean requireApproval) {
         this.apiKey = apiKey;
         this.model = model;
         this.requireApproval = requireApproval;
@@ -20,9 +20,7 @@ final class RealmGPTConfig {
         Path dir = configDir.resolve("realmgpt");
         Files.createDirectories(dir);
         Path file = dir.resolve("realmgpt.properties");
-        if (!Files.exists(file)) {
-            Files.writeString(file, "# RealmGPT local configuration - DO NOT SHARE THIS FILE\napi_key=PASTE_OPENAI_API_KEY_HERE\nmodel=gpt-5-mini\nrequire_approval=true\n");
-        }
+        if (!Files.exists(file)) Files.writeString(file, "# RealmGPT local configuration - DO NOT SHARE THIS FILE\napi_key=PASTE_OPENAI_API_KEY_HERE\nmodel=gpt-5-mini\nrequire_approval=true\n");
         Properties p = new Properties();
         try (var in = Files.newInputStream(file)) { p.load(in); }
         return new RealmGPTConfig(p.getProperty("api_key", "").trim(), p.getProperty("model", "gpt-5-mini").trim(), Boolean.parseBoolean(p.getProperty("require_approval", "true")));
