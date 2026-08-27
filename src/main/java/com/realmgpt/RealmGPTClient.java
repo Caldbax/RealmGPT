@@ -5,7 +5,6 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,7 +89,6 @@ public final class RealmGPTClient implements ClientModInitializer {
     }
 
     private static void feedback(String message) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.gui != null) mc.gui.getChat().addMessage(Component.literal("[RealmGPT] " + message));
+        System.out.println("[RealmGPT] " + message);
     }
 }
