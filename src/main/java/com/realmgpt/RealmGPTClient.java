@@ -91,6 +91,6 @@ public final class RealmGPTClient implements ClientModInitializer {
 
     private static void feedback(String message) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null) mc.player.displayClientMessage(Component.literal("[RealmGPT] " + message), false);
+        if (mc.gui != null) mc.gui.getChat().addMessage(Component.literal("[RealmGPT] " + message));
     }
 }
